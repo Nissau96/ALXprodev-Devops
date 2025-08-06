@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# A script that uses jq, awk, and sed to parse JSON data and format it.
+
+# The JSON file to read data from.
+DATA_FILE="data.json"
+
+# --- Main Script Logic ---
+
+# 1. Check if the data file exists before trying to read it.
+if [ ! -f "$DATA_FILE" ]; then
+    echo "Error: '${DATA_FILE}' not found. Please run the API script first to generate it."
+    exit 1
+fi
+
+# 2. Create the data processing pipeline.
+#    jq -> extracts raw data
+#    awk -> processes data (math, capitalization)
+#    sed -> formats the final sentence
+PIPELINE_OUTPUT=$(jq -r '"\(.name)|\(.height)|\(.weight)|\(.types[0].type.name)"' "$DATA_FILE" | \
+awk -F'|' '{
+    name = toupper(substr($1, 1, 1)) substr($1, 2);
+    height_m = $2 / 10;
+    weight_kg = $3 / 10;
+    type = $4;
+    print name "|" height_m "|" weight_kg "|" type
+}' | \
+sed 's/\([^|]*\)|\([^|]*\)|\([^|]*\)|\(.*\)/\1 is of type \4, weighs \3kg, and is \2m tall./')
+
+# 3. Print the final, formatted output.
+echo "$PIPELINE_OUTPUT"
