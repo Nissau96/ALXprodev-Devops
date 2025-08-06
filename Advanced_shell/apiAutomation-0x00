@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# apiAutomation-0x00
+# Script to fetch Pikachu data from Pokémon API and handle errors
+
+# Define variables
+API_URL="https://pokeapi.co/api/v2/pokemon/pikachu"
+OUTPUT_FILE="data.json"
+ERROR_FILE="errors.txt"
+TIMESTAMP=$(date +"%Y-%m-%d %T")
+
+# Make API request and handle response
+echo "[$TIMESTAMP] Starting API request to $API_URL" >> "$ERROR_FILE"
+
+response=$(curl -s -w "%{http_code}" "$API_URL")
+
+http_code=${response: -3}  # Get the last 3 digits which contain HTTP status
+content=${response%???}   # Get all except last 3 digits (the actual content)
+
+if [[ "$http_code" == 200 ]]; then
+    # Success - save to JSON file
+    echo "$content" > "$OUTPUT_FILE"
+    echo "[$TIMESTAMP] Successfully saved Pikachu data to $OUTPUT_FILE" >> "$ERROR_FILE"
+else
+    # Failure - log error
+    echo "[$TIMESTAMP] Error: API request failed with HTTP code $http_code" >> "$ERROR_FILE"
+    echo "$content" >> "$ERROR_FILE"  # Include the error response if any
+    exit 1
+fi
