@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# batchProcessing-0x02
+# Script to fetch data for multiple Pokémon with rate limiting
+
+# Configuration
+POKEMON_LIST=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
+API_BASE_URL="https://pokeapi.co/api/v2/pokemon"
+OUTPUT_DIR="pokemon_data"
+DELAY_SECONDS=2  # Delay between requests to avoid rate limiting
+
+# Create output directory if it doesn't exist
+mkdir -p "$OUTPUT_DIR"
+
+# Function to fetch and save Pokémon data
+fetch_pokemon_data() {
+    local pokemon=$1
+    local output_file="${OUTPUT_DIR}/${pokemon}.json"
+    
+    echo "Fetching data for ${pokemon}..."
+    
+    # Make API request
+    response=$(curl -s -w "%{http_code}" "${API_BASE_URL}/${pokemon}")
+    http_code=${response: -3}
+    content=${response%???}
+    
+    if [[ "$http_code" == 200 ]]; then
+        echo "$content" > "$output_file"
+        echo "Saved data to ${output_file} ✅"
+        return 0
+    else
+        echo "Error: Failed to fetch ${pokemon} (HTTP ${http_code})" >&2
+        return 1
+    fi
+}
+
+# Main processing loop
+for pokemon in "${POKEMON_LIST[@]}"; do
+    fetch_pokemon_data "$pokemon"
+    
+    # Add delay between requests to be polite to the API
+    if [[ "$pokemon" != "${POKEMON_LIST[-1]}" ]]; then
+        sleep "$DELAY_SECONDS"
+    fi
+done
+
+echo "Batch processing complete!"
