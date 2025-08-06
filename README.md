@@ -83,3 +83,9 @@ Pikachu is of type electric, weighs 6kg, and is 0.4m tall.
 ```
 
 ---
+
+#### `batchProcessing-0x02`
+
+- **Objective**: Fetches data for a list of Pokémon, saving each to a separate file.
+- **Run**: `./Advanced_shell/batchProcessing-0x02`
+- **Outcome**: Creates a `pokemon_data/` directory populated with JSON files (e.g., `bulbasaur.json`).
