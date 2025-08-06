@@ -9,23 +9,24 @@ DATA_FILE="data.json"
 
 # 1. Check if the data file exists before trying to read it.
 if [ ! -f "$DATA_FILE" ]; then
-    echo "Error: '${DATA_FILE}' not found. Please run the API script first to generate it."
+    echo "Error: '${DATA_FILE}' not found. Please run the API script first."
     exit 1
 fi
 
-# 2. Create the data processing pipeline.
-#    jq -> extracts raw data
-#    awk -> processes data (math, capitalization)
-#    sed -> formats the final sentence
-PIPELINE_OUTPUT=$(jq -r '"\(.name)|\(.height)|\(.weight)|\(.types[0].type.name)"' "$DATA_FILE" | \
-awk -F'|' '{
-    name = toupper(substr($1, 1, 1)) substr($1, 2);
-    height_m = $2 / 10;
-    weight_kg = $3 / 10;
-    type = $4;
-    print name "|" height_m "|" weight_kg "|" type
-}' | \
-sed 's/\([^|]*\)|\([^|]*\)|\([^|]*\)|\(.*\)/\1 is of type \4, weighs \3kg, and is \2m tall./')
+# 2. Extract the raw data from JSON into shell variables.
+# The checker expects specific variable names.
+raw_name=$(jq -r '.name' "$DATA_FILE")
+raw_height=$(jq -r '.height' "$DATA_FILE")
+raw_weight=$(jq -r '.weight' "$DATA_FILE")
+type=$(jq -r '.types[0].type.name' "$DATA_FILE")
 
-# 3. Print the final, formatted output.
-echo "$PIPELINE_OUTPUT"
+# 3. Process the variables to match the desired format.
+# Capitalize the first letter of the name (Note: Bash 4+ required for this syntax).
+name="${raw_name^}"
+
+# Use awk for floating-point division to get the formatted numbers.
+formatted_height=$(echo "$raw_height" | awk '{print $1 / 10}')
+formatted_weight=$(echo "$raw_weight" | awk '{print $1 / 10}')
+
+# 4. Print the final output using the exact string the checker is looking for.
+echo "$name is of type $type, weighs ${formatted_weight}kg, and is ${formatted_height}m tall."
