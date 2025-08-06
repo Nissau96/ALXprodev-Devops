@@ -18,11 +18,20 @@ Shell scripting is a powerful tool that allows users to automate repetitive task
 
 ```
 .
-├── Advanced_shell/
-│   ├── apiAutomation-0x00      # Task 1: Automates API requests
-│   └── ...                     # Other scripts will go here
-├── .git/                       # Git directory for version control
-└── README.md                   # This file
+Advanced_shell/
+├── apiAutomation-0x00 # Pokémon API automation script
+├── data_extraction_automation-0x01 # Data extraction script
+├── batchProcessing-0x02 # Batch Pokémon data retrieval
+├── summaryData-0x03 # Data summary script
+├── pokemon_data/ # Directory for batch outputs
+│ ├── bulbasaur.json # Sample output files
+│ ├── ivysaur.json
+│ └── ...
+├── pokemon_report.csv # Generated summary report
+├── data.json # Output file (single Pokémon)
+├── pikachu_stats.txt # Formatted stats
+├── errors.txt # Error log file
+└── README.md # Project documentation
 ```
 
 ## Prerequisites
@@ -89,3 +98,9 @@ Pikachu is of type electric, weighs 6kg, and is 0.4m tall.
 - **Objective**: Fetches data for a list of Pokémon, saving each to a separate file.
 - **Run**: `./Advanced_shell/batchProcessing-0x02`
 - **Outcome**: Creates a `pokemon_data/` directory populated with JSON files (e.g., `bulbasaur.json`).
+
+
+#### `summaryData-0x03`
+* **Objective**: Reads all generated JSON files, creates a CSV summary report, and calculates average statistics using `awk`.
+* **Run**: `./Advanced_shell/summaryData-0x03`
+
