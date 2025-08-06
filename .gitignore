@@ -1,0 +1,4 @@
+# Ignore downloaded data files and directories
+/pokemon_data/
+/data.json
+/errors.txt
