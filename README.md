@@ -104,3 +104,7 @@ Pikachu is of type electric, weighs 6kg, and is 0.4m tall.
 * **Objective**: Reads all generated JSON files, creates a CSV summary report, and calculates average statistics using `awk`.
 * **Run**: `./Advanced_shell/summaryData-0x03`
 
+#### `batchProcessing-0x04`
+* **Objective**: Demonstrates parallel data fetching by running multiple download processes in the background simultaneously to improve performance.
+* **Run**: `./Advanced_shell/batchProcessing-0x04`
+
