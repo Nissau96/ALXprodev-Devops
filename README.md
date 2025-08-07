@@ -4,6 +4,16 @@
 
 This repository contains a collection of advanced shell scripts designed to automate complex tasks, manage system processes, and enhance productivity in a Unix-like environment.
 
+## Table of Contents
+
+1.  [Overview](#overview)
+2.  [Project Structure](#project-structure)
+3.  [Prerequisites](#prerequisites)
+4.  [Project Scripts](#project-scripts)
+    - [Core API & Data Handling](#core-api--data-handling)
+    - [Advanced Text & Data Processing](#advanced-text--data-processing)
+    - [Advanced Process Management](#advanced-process-management)
+
 ## Overview
 
 Shell scripting is a powerful tool that allows users to automate repetitive tasks by writing a sequence of commands in a script file. This project explores fundamental and advanced concepts, including:
@@ -19,19 +29,14 @@ Shell scripting is a powerful tool that allows users to automate repetitive task
 ```
 .
 Advanced_shell/
-├── apiAutomation-0x00 # Pokémon API automation script
-├── data_extraction_automation-0x01 # Data extraction script
-├── batchProcessing-0x02 # Batch Pokémon data retrieval
-├── summaryData-0x03 # Data summary script
-├── pokemon_data/ # Directory for batch outputs
-│ ├── bulbasaur.json # Sample output files
-│ ├── ivysaur.json
-│ └── ...
-├── pokemon_report.csv # Generated summary report
-├── data.json # Output file (single Pokémon)
-├── pikachu_stats.txt # Formatted stats
-├── errors.txt # Error log file
-└── README.md # Project documentation
+├── .gitignore
+├── README.md
+└── Advanced_shell/
+    ├── apiAutomation-0x00
+    ├── data_extraction_automation-0x01
+    ├── batchProcessing-0x02
+    ├── summaryData-0x03
+    └── batchProcessing-0x04
 ```
 
 ## Prerequisites
@@ -45,66 +50,39 @@ To run the scripts in this project, you will need a Unix-like environment (like 
 You can install `jq` on Debian/Ubuntu with:
 `sudo apt-get install jq`
 
-## Scripts and Usage
+## Project Scripts
 
-### Task 1: API Request Automation (`apiAutomation-0x00`)
+The scripts in this project are organized by their core function, demonstrating a progression from basic tasks to more advanced concepts.
 
-This script automates the process of making API requests to the Pokémon API and saving the results.
+### Core API & Data Handling
 
-**How to Run:**
+#### `apiAutomation-0x00`
 
-1.  Navigate to the script's directory:
-    ```bash
-    cd Advanced_shell
-    ```
-2.  Make the script executable:
-    ```bash
-    chmod +x apiAutomation-0x00
-    ```
-3.  Execute the script:
-    ```bash
-    ./apiAutomation-0x00
-    ```
-
-**Behavior:**
-
-- **On Success**: It creates a `data.json` file in the same directory with the Pokémon's data.
-- **On Failure**: It creates an `errors.txt` file containing an error message, a timestamp, and the HTTP status code.
-
----
-
-### Task 2: Extract Pokémon Data (`data_extraction_automation-0x01`)
-
-This script uses `jq`, `awk`, and `sed` to extract data from `data.json` and format it into a sentence. It depends on `data.json` from Task 1.
-
-**How to Run:**
-
-```bash
-cd Advanced_shell
-chmod +x data_extraction_automation-0x01
-./data_extraction_automation-0x01
-```
-
-**Expected Output:**
-
-```
-Pikachu is of type electric, weighs 6kg, and is 0.4m tall.
-```
-
----
+- **Objective**: Automates making a single, basic API request to the Pokémon API and saving the result.
+- **Run**: `./Advanced_shell/apiAutomation-0x00`
 
 #### `batchProcessing-0x02`
 
-- **Objective**: Fetches data for a list of Pokémon, saving each to a separate file. Includes robust error handling with a retry mechanism (up to 3 attempts) for failed requests.
+- **Objective**: Fetches data for a list of Pokémon sequentially. This script is robust, featuring error handling with a retry mechanism (up to 3 attempts) for failed requests.
 - **Run**: `./Advanced_shell/batchProcessing-0x02`
-- **Outcome**: Creates a `pokemon_data/` directory populated with JSON files (e.g., `bulbasaur.json`).
 
+### Advanced Text & Data Processing
+
+#### `data_extraction_automation-0x01`
+
+- **Objective**: Parses a local `data.json` file using a `jq`, `awk`, and `sed` pipeline to extract specific fields and format them into a human-readable sentence.
+- **Run**: `./Advanced_shell/data_extraction_automation-0x01`
 
 #### `summaryData-0x03`
-* **Objective**: Reads all generated JSON files, creates a CSV summary report, and calculates average statistics using `awk`.
-* **Run**: `./Advanced_shell/summaryData-0x03`
+
+- **Objective**: Reads a directory of JSON files, aggregates the data into a single `pokemon_report.csv` file, and uses `awk` to calculate and display average statistics.
+- **Run**: `./Advanced_shell/summaryData-0x03`
+
+### Advanced Process Management
 
 #### `batchProcessing-0x04`
-* **Objective**: Demonstrates parallel data fetching by running multiple download processes in the background simultaneously to improve performance.
-* **Run**: `./Advanced_shell/batchProcessing-0x04`
 
+- **Objective**: Demonstrates parallel data fetching by running multiple download processes in the background simultaneously to improve performance.
+- **Run**: `./Advanced_shell/batchProcessing-0x04`
+
+---
