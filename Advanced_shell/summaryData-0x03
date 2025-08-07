@@ -1,45 +1,62 @@
 #!/bin/bash
 
-# summaryData-0x03
-# Script to generate a CSV report from Pokémon JSON data
+# A script to read multiple JSON files, generate a CSV report,
+# and calculate average stats.
 
-# Configuration
+# --- Configuration ---
 INPUT_DIR="pokemon_data"
-OUTPUT_FILE="pokemon_report.csv"
+CSV_FILE="pokemon_report.csv"
 
-# Initialize CSV header
-echo "Name,Height (m),Weight (kg)" > "$OUTPUT_FILE"
+# --- Main Script Logic ---
 
-# Process files and calculate averages using awk
-awk -F, '
-BEGIN {
-    print "Name,Height (m),Weight (kg)" > "'"$OUTPUT_FILE"'"
-    total_height = 0
-    total_weight = 0
-    count = 0
-}
-{
-    # Process each JSON file
-    cmd = "jq -r '\''.name,.height/10,.weight/10'\'' " $0
-    while ((cmd | getline result) > 0) {
-        if (NR % 3 == 1) name = result
-        if (NR % 3 == 2) height = result
-        if (NR % 3 == 0) {
-            weight = result
-            print name "," height "," weight >> "'"$OUTPUT_FILE"'"
-            total_height += height
-            total_weight += weight
-            count++
+# 1. Check if the input directory exists.
+if [ ! -d "$INPUT_DIR" ]; then
+    echo "Error: Input directory '${INPUT_DIR}' not found."
+    echo "Please run the batch processing script first."
+    exit 1
+fi
+
+# 2. Initialize the CSV file with a header row.
+echo "Name,Height (m),Weight (kg)" > "$CSV_FILE"
+
+# 3. Loop through all JSON files in the directory.
+for file in "$INPUT_DIR"/*.json; do
+    # Check if the file is a regular file before processing.
+    if [ -f "$file" ]; then
+        # Use jq to extract raw data.
+        name=$(jq -r '.name' "$file")
+        height=$(jq -r '.height' "$file")
+        weight=$(jq -r '.weight' "$file")
+
+        # Process data: Capitalize name and convert units.
+        name_cap="${name^}"
+        height_m=$(echo "$height" | awk '{print $1 / 10}')
+        weight_kg=$(echo "$weight" | awk '{print $1 / 10}')
+
+        # Append the formatted data to the CSV file.
+        echo "$name_cap,$height_m,$weight_kg" >> "$CSV_FILE"
+    fi
+done
+
+echo "CSV Report generated at: $CSV_FILE"
+echo
+
+# 4. Display the contents of the generated report.
+sed '' "$CSV_FILE"
+echo
+
+# 5. Use awk to calculate and display the average height and weight.
+awk -F ',' '
+    # NR is the record number (line number). We skip the header (NR>1).
+    NR > 1 {
+        height_sum += $2;
+        weight_sum += $3;
+        count++;
+    }
+    END {
+        if (count > 0) {
+            printf "Average Height: %.2f m\n", height_sum / count;
+            printf "Average Weight: %.2f kg\n", weight_sum / count;
         }
     }
-    close(cmd)
-}
-END {
-    avg_height = total_height / count
-    avg_weight = total_weight / count
-    print "\nAverage Height: " avg_height " m"
-    print "Average Weight: " avg_weight " kg"
-}' < <(find "$INPUT_DIR" -name "*.json" -type f)
-
-# Output CSV location
-echo -e "\nCSV Report generated at: $OUTPUT_FILE"
+' "$CSV_FILE"
