@@ -1,72 +1,47 @@
-#!/bin/bash
+# --- Configuration ---
+POKEMON_LIST=("Bulbasaur" "Ivysaur" "Venusaur" "Charmander" "Charmeleon" "Pikachu" "Snorlax" "Mewtwo")
+OUTPUT_DIR="pokemon_data_parallel"
 
-# batchProcessing-0x04
-# Script to fetch Pokémon data in parallel
-
-# Configuration
-POKEMON_LIST=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
-API_BASE_URL="https://pokeapi.co/api/v2/pokemon"
-OUTPUT_DIR="pokemon_data"
-ERROR_LOG="pokemon_errors.log"
-MAX_PARALLEL=3  # Maximum concurrent processes
-DELAY_SECONDS=1 # Minimum delay between process launches
-
-# Create directories if they don't exist
-mkdir -p "$OUTPUT_DIR"
-
-# Initialize error log
-echo "Parallel Pokémon API Error Log - $(date)" > "$ERROR_LOG"
-
-# Function to fetch a single Pokémon
-fetch_pokemon() {
-    local pokemon=$1
-    local output_file="${OUTPUT_DIR}/${pokemon}.json"
-    local http_code
-    local response
+# --- Function to Fetch Data ---
+fetch_one_pokemon() {
+    local pokemon_name=$1
+    local pokemon_lower=$(echo "$pokemon_name" | tr '[:upper:]' '[:lower:]')
     
-    echo "Starting fetch for $pokemon (PID: $$)..."
-    response=$(curl -s -w "\n%{http_code}" "${API_BASE_URL}/${pokemon}")
-    http_code=$(echo "$response" | tail -n1)
-    content=$(echo "$response" | head -n -1)
+    local API_URL="https://pokeapi.co/api/v2/pokemon/${pokemon_lower}"
+    local OUTPUT_FILE="${OUTPUT_DIR}/${pokemon_lower}.json"
 
-    if [[ "$http_code" == 200 ]]; then
-        echo "$content" > "$output_file"
-        echo "✅ Successfully saved $pokemon.json"
+    echo "Starting download for ${pokemon_lower}..."
+    
+    local HTTP_STATUS=$(curl -s -L -o "$OUTPUT_FILE" -w "%{http_code}" "$API_URL")
+
+    if [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 300 ]]; then
+        echo "✅ Success: ${pokemon_lower}"
     else
-        echo "❌ Failed to fetch $pokemon (HTTP $http_code)" | tee -a "$ERROR_LOG"
-        echo "$content" >> "$ERROR_LOG"
-        return 1
+        echo "❌ Failed:  ${pokemon_lower} (Status: ${HTTP_STATUS})"
+        rm -f "$OUTPUT_FILE"
     fi
 }
 
-# Main execution
-echo "Starting parallel fetch for ${#POKEMON_LIST[@]} Pokémon..."
-echo "Maximum concurrent processes: $MAX_PARALLEL"
+# --- Main Script Logic ---
+mkdir -p "$OUTPUT_DIR"
 
-declare -a pids
-current_parallel=0
+# Array to store the PIDs of the background jobs.
+pids=()
+
+# Set a trap. This will ensure that if the script is interrupted, it will kill all background jobs.
+trap 'kill ${pids[*]} 2>/dev/null' EXIT
+
+echo "Dispatching all Pokémon downloads in parallel..."
 
 for pokemon in "${POKEMON_LIST[@]}"; do
-    # Wait if we've reached max parallel processes
-    while [[ $(jobs -r | wc -l) -ge $MAX_PARALLEL ]]; do
-        sleep 0.5
-    done
-
-    # Start fetch in background
-    fetch_pokemon "$pokemon" &
+    fetch_one_pokemon "$pokemon" &
+    # Store the PID of the process we just sent to the background.
     pids+=($!)
-    current_parallel=$((current_parallel + 1))
-    
-    echo "Launched $pokemon (PID: ${pids[-1]}) - $current_parallel active"
-    sleep "$DELAY_SECONDS"  # Be kind to the API
 done
 
-# Wait for all background processes to complete
-echo -e "\nWaiting for all processes to complete..."
-for pid in "${pids[@]}"; do
-    wait "$pid" || echo "⚠️ Process $pid exited with error" | tee -a "$ERROR_LOG"
-done
+echo "All jobs dispatched. Waiting for completion..."
+# The 'wait' command pauses until all background jobs complete.
+wait
 
-echo -e "\nParallel fetch complete!"
-echo "Error log saved to: $ERROR_LOG"
-echo "Successful files saved to: $OUTPUT_DIR/"
+echo "All parallel downloads have completed."
+# The trap command will automatically run now as the script exits.
